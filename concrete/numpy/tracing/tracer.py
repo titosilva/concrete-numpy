@@ -348,6 +348,7 @@ class Tracer:
             dtype = kwargs.get("dtype", np.int64)
             return Tracer(Node.constant(np.zeros(args[0].shape, dtype=dtype)), [])
 
+
         def sampler(arg: Any) -> Any:
             if isinstance(arg, tuple):
                 return tuple(sampler(item) for item in arg)
@@ -376,9 +377,17 @@ class Tracer:
             if isinstance(arg, Tracer):
                 tracers.append(arg)
 
+
         tracers: List[Tracer] = []
         for arg in args:
             extract_tracers(arg, tracers)
+
+        some_input_is_const = any(tracer.computation.operation == Operation.Constant for tracer in tracers)
+        if operation == np.greater and not some_input_is_const:
+            sub_tracer = Tracer._trace_numpy_operation(np.subtract, *args, **kwargs)
+            const0 = Tracer.sanitize(0)
+            gt0_node = Tracer._trace_numpy_operation(np.greater, sub_tracer, const0)
+            return gt0_node
 
         output_value = Value.of(evaluation)
         output_value.is_encrypted = any(tracer.output.is_encrypted for tracer in tracers)
