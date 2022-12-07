@@ -211,6 +211,15 @@ class NodeConverter:
             elif name == "zeros":
                 result = self._convert_zeros()
 
+            elif name == "bitwise_and":
+                result = self._convert_bitwise_and()
+
+            elif name == "bitwise_or":
+                result = self._convert_bitwise_or()
+
+            elif name == "greater":
+                result = self._convert_greater()
+
             else:
                 assert_that(self.node.converted_to_table_lookup)
                 result = self._convert_tlu()
@@ -1092,4 +1101,98 @@ class NodeConverter:
             result = arith.ConstantOp(mlir_type, mlir_attribute)
             # pylint: enable=too-many-function-args
             self.constant_cache[(mlir_type, mlir_attribute)] = result
+        return result
+
+    def _convert_bitwise_and(self) -> OpResult:
+        """
+        Convert "bitwise_and" node to its corresponding MLIR representation.
+
+        Returns:
+            OpResult:
+                in-memory MLIR representation corresponding to `self.node`
+        """
+
+        resulting_type = NodeConverter.value_to_mlir_type(self.ctx, self.node.output)
+        preds = self.preds
+
+        if self.all_of_the_inputs_are_encrypted:
+            if self.one_of_the_inputs_is_a_tensor:
+                raise NotImplementedError()
+                # result = fhelinalg.AddEintOp(resulting_type, *preds).result
+            else:
+                result = fhe.AddEintOp(resulting_type, *preds).result
+        else:
+            if self.node.inputs[0].is_clear:
+                preds = preds[::-1]
+
+            if self.one_of_the_inputs_is_a_tensor:
+                raise NotImplementedError()
+                # result = fhelinalg.AddEintIntOp(resulting_type, *preds).result
+            else:
+                raise NotImplementedError()
+                # result = fhe.AddEintIntOp(resulting_type, *preds).result
+
+        return result
+
+    def _convert_bitwise_or(self) -> OpResult:
+        """
+        Convert "bitwise_or" node to its corresponding MLIR representation.
+
+        Returns:
+            OpResult:
+                in-memory MLIR representation corresponding to `self.node`
+        """
+
+        resulting_type = NodeConverter.value_to_mlir_type(self.ctx, self.node.output)
+        preds = self.preds
+
+        if self.all_of_the_inputs_are_encrypted:
+            if self.one_of_the_inputs_is_a_tensor:
+                raise NotImplementedError()
+                # result = fhelinalg.AddEintOp(resulting_type, *preds).result
+            else:
+                result = fhe.AddEintOp(resulting_type, *preds).result
+        else:
+            if self.node.inputs[0].is_clear:
+                preds = preds[::-1]
+
+            if self.one_of_the_inputs_is_a_tensor:
+                raise NotImplementedError()
+                # result = fhelinalg.AddEintIntOp(resulting_type, *preds).result
+            else:
+                raise NotImplementedError()
+                # result = fhe.AddEintIntOp(resulting_type, *preds).result
+
+        return result
+
+    def _convert_greater(self) -> OpResult:
+        """
+        Convert "bitwise_or" node to its corresponding MLIR representation.
+
+        Returns:
+            OpResult:
+                in-memory MLIR representation corresponding to `self.node`
+        """
+
+        resulting_type = NodeConverter.value_to_mlir_type(self.ctx, self.node.output)
+        preds = self.preds
+
+        if self.all_of_the_inputs_are_encrypted:
+            if self.one_of_the_inputs_is_a_tensor:
+                raise NotImplementedError()
+                # result = fhelinalg.AddEintOp(resulting_type, *preds).result
+            else:
+                result = fhe.SubEintOp(resulting_type, *preds).result
+                
+        else:
+            if self.node.inputs[0].is_clear:
+                preds = preds[::-1]
+
+            if self.one_of_the_inputs_is_a_tensor:
+                raise NotImplementedError()
+                # result = fhelinalg.AddEintIntOp(resulting_type, *preds).result
+            else:
+                raise NotImplementedError()
+                # result = fhe.AddEintIntOp(resulting_type, *preds).result
+
         return result

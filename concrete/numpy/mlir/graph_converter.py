@@ -155,6 +155,18 @@ class GraphConverter:
             elif name == "zeros":
                 assert_that(len(inputs) == 0)
 
+            elif name == "bitwise_and":
+                assert_that(len(inputs) == 2)
+
+            elif name == "bitwise_or":
+                assert_that(len(inputs) == 2)
+
+            elif name == "bitwise_not":
+                assert_that(len(inputs) == 1)
+
+            elif name == "greater":
+                assert_that(len(inputs) == 2)
+
             else:
                 assert_that(node.converted_to_table_lookup)
                 variable_input_indices = [
