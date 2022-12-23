@@ -1,6 +1,6 @@
 # Configure
 
-Behavior of **Concrete Numpy** can be customized using `Configuration`s:
+The behavior of **Concrete-Numpy** can be customized using `Configuration`s:
 
 ```python
 import concrete.numpy as cnp
@@ -47,46 +47,58 @@ circuit = f.compile(inputset, configuration=configuration, loop_parallelize=True
 ```
 
 {% hint style="info" %}
-Additional kwarg to `compile` function have higher precedence. So if you set an option in both `configuration` and in `compile` method, the value in the `compile` method will be used.
+Additional kwarg to `compile` function have higher precedence. So if you set an option in both `configuration` and in `compile` methods, the value in the `compile` method will be used.
 {% endhint %}
 
 ## Options
 
-* **show_graph**: bool = False
+* **show\_graph**: Optional[bool] = None
   * Whether to print computation graph during compilation.
+    `True` means always to print, `False` means always to not print, `None` means print depending on verbose configuration below.
 
-* **show_mlir**: bool = False
+* **show\_mlir**: Optional[bool] = None
   * Whether to print MLIR during compilation.
+    `True` means always to print, `False` means always to not print, `None` means print depending on verbose configuration below.
+
+* **show\_optimizer**: Optional[bool] = None
+  * Whether to print optimizer output during compilation.
+    `True` means always to print, `False` means always to not print, `None` means print depending on verbose configuration below.
 
 * **verbose**: bool = False
-  * Whether to print computation graph and MLIR during compilation.
-
-* **dump_artifacts_on_unexpected_failures**: bool = True
+  * Whether to print details related to compilation.
+  
+* **dump\_artifacts\_on\_unexpected\_failures**: bool = True
   * Whether to export debugging artifacts automatically on compilation failures.
 
-* **p_error**: float = 0.000063342483999973
-  * Error probability for table lookups.
+* **auto_adjust_rounders**: bool = False
+    * Whether to adjust rounders automatically.
+
+* **p_error**: Optional[float] = None
+  * Error probability for individual table lookups. If set, all table lookups will have the probability of non-exact result smaller than the set value.
+
+* **global_p_error**: Optional[float] = (1 / 100_000)
+    * Global error probability for the whole circuit. If set, the whole circuit will have the probability of non-exact result smaller than the set value.
 
 * **jit**: bool = False
   * Whether to use JIT compilation.
 
-* **loop_parallelize**: bool = True
+* **loop\_parallelize**: bool = True
   * Whether to enable loop parallelization in the compiler.
 
-* **dataflow_parallelize**: bool = False
+* **dataflow\_parallelize**: bool = False
   * Whether to enable dataflow parallelization in the compiler.
 
-* **auto_parallelize**: bool = False
+* **auto\_parallelize**: bool = False
   * Whether to enable auto parallelization in the compiler.
 
-* **enable_unsafe_features**: bool = False
-  * Whether to enable unsage features.
+* **enable\_unsafe\_features**: bool = False
+  * Whether to enable unsafe features.
 
 * **virtual**: bool = False _(Unsafe)_
   * Whether to create a virtual circuit.
 
-* **use_insecure_key_cache**: bool = False _(Unsafe)_
+* **use\_insecure\_key\_cache**: bool = False _(Unsafe)_
   * Whether to use the insecure key cache.
 
-* **insecure_key_cache_location**: Optional[Union[Path, str]] = None
+* **insecure\_key\_cache\_location**: Optional\[Union\[Path, str]] = None
   * Location of insecure key cache.

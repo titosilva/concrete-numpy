@@ -64,9 +64,9 @@ def conv(
         Union[np.ndarray, Tracer]: evaluation result or traced computation
     """
     if kernel_shape is not None and (
-        weight.ndim != len(kernel_shape) or not np.equal(weight.shape, kernel_shape)
+        (weight.ndim - 2) != len(kernel_shape) or not np.all(weight.shape[2:] == kernel_shape)
     ):
-        raise ValueError(f"expected kernel_shape to be {weight.shape}, but got {kernel_shape}")
+        raise ValueError(f"expected kernel_shape to be {weight.shape[2:]}, but got {kernel_shape}")
 
     if isinstance(x, np.ndarray):
         if not isinstance(weight, np.ndarray):
@@ -391,9 +391,19 @@ def _trace_or_eval(
 
     if isinstance(x, Tracer):
         return _trace_conv(x, weight, bias, pads, strides, dilations, group, conv_func)
-    bias = np.zeros(weight.shape[0]) if bias is None else bias
+
+    assert isinstance(x, np.ndarray)
     assert isinstance(weight, np.ndarray)
+
+    dtype = (
+        np.float64
+        if np.issubdtype(x.dtype, np.floating) or np.issubdtype(weight.dtype, np.floating)
+        else np.int64
+    )
+    bias = np.zeros(weight.shape[0], dtype=dtype) if bias is None else bias
+
     assert isinstance(bias, np.ndarray)
+
     return _evaluate_conv(x, weight, bias, pads, strides, dilations, group, conv_func)
 
 
@@ -618,6 +628,17 @@ def _evaluate_conv(
     )
     torch_conv_func = cast(Callable, torch_conv_func)
 
+    n_dim = x.ndim - 2  # remove batch_size and channel dims
+    torch_padding = []
+    for dim in range(n_dim):
+        if pads[dim] != pads[n_dim + dim]:
+            raise ValueError(
+                f"padding should be the same for the beginning of the dimension and its end, but "
+                f"got {pads[dim]} in the beginning, and {pads[n_dim + dim]} at the end for "
+                f"dimension {dim}"
+            )
+        torch_padding.append(pads[dim])
+
     dtype = (
         torch.float64
         if np.issubdtype(x.dtype, np.floating)
@@ -630,6 +651,7 @@ def _evaluate_conv(
         torch.tensor(weight, dtype=dtype),
         torch.tensor(bias, dtype=dtype),
         stride=strides,
+        padding=torch_padding,
         dilation=dilations,
         groups=group,
     ).numpy()

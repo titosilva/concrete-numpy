@@ -13,9 +13,10 @@ import numpy as np
 from concrete.lang.dialects import fhe, fhelinalg
 from mlir.dialects import arith, func
 from mlir.ir import (
+    Attribute,
     Context,
-    DenseElementsAttr,
     InsertionPoint,
+    IntegerAttr,
     IntegerType,
     Location,
     Module,
@@ -39,7 +40,7 @@ class GraphConverter:
     """
 
     @staticmethod
-    def _check_node_convertibility(graph: Graph, node: Node) -> Optional[str]:
+    def _check_node_convertibility(graph: Graph, node: Node, virtual: bool) -> Optional[str]:
         """
         Check node convertibility to MLIR.
 
@@ -49,6 +50,9 @@ class GraphConverter:
 
             node (Node):
                 node to be checked
+
+            virtual  (bool):
+                whether the circuit will be virtual
 
         Returns:
             Optional[str]:
@@ -111,6 +115,9 @@ class GraphConverter:
                 if inputs[0].is_encrypted and inputs[1].is_encrypted:
                     return "only dot product between encrypted and clear is supported"
 
+            elif name == "expand_dims":
+                assert_that(len(inputs) == 1)
+
             elif name == "index.static":
                 assert_that(len(inputs) == 1)
                 if not inputs[0].is_encrypted:
@@ -121,9 +128,14 @@ class GraphConverter:
                 if inputs[0].is_encrypted and inputs[1].is_encrypted:
                     return "only matrix multiplication between encrypted and clear is supported"
 
+            elif name == "maxpool":
+                assert_that(len(inputs) == 1)
+                if not inputs[0].is_encrypted:
+                    return "only encrypted maxpool is supported"
+
             elif name == "multiply":
                 assert_that(len(inputs) == 2)
-                if inputs[0].is_encrypted and inputs[1].is_encrypted:
+                if not virtual and inputs[0].is_encrypted and inputs[1].is_encrypted:
                     return "only multiplication between encrypted and clear is supported"
 
             elif name == "negative":
@@ -162,8 +174,7 @@ class GraphConverter:
                     for idx, pred in enumerate(graph.ordered_preds_of(node))
                     if not pred.operation == Operation.Constant
                 ]
-                if len(variable_input_indices) != 1:
-                    return "only single input table lookups are supported"
+                assert_that(len(variable_input_indices) == 1)
 
             if len(inputs) > 0 and all(input.is_clear for input in inputs):
                 return "one of the operands must be encrypted"
@@ -173,13 +184,16 @@ class GraphConverter:
         # pylint: enable=too-many-branches,too-many-return-statements,too-many-statements
 
     @staticmethod
-    def _check_graph_convertibility(graph: Graph):
+    def _check_graph_convertibility(graph: Graph, virtual: bool):
         """
         Check graph convertibility to MLIR.
 
         Args:
             graph (Graph):
                 computation graph to be checked
+
+            virtual  (bool):
+                whether the circuit will be virtual
 
         Raises:
             RuntimeError:
@@ -191,16 +205,16 @@ class GraphConverter:
         if len(graph.output_nodes) > 1:
             offending_nodes.update(
                 {
-                    node: ["only a single output is supported"]
+                    node: ["only a single output is supported", node.location]
                     for node in graph.output_nodes.values()
                 }
             )
 
         if len(offending_nodes) == 0:
             for node in graph.graph.nodes:
-                reason = GraphConverter._check_node_convertibility(graph, node)
+                reason = GraphConverter._check_node_convertibility(graph, node, virtual)
                 if reason is not None:
-                    offending_nodes[node] = [reason]
+                    offending_nodes[node] = [reason, node.location]
 
         if len(offending_nodes) != 0:
             raise RuntimeError(
@@ -240,11 +254,13 @@ class GraphConverter:
             if dtype.is_signed and first_signed_node is None:
                 first_signed_node = node
 
-        if first_tlu_node is not None and max_bit_width > MAXIMUM_TLU_BIT_WIDTH:
-            offending_nodes[first_tlu_node] = [
-                f"table lookups are only supported on circuits with "
-                f"up to {MAXIMUM_TLU_BIT_WIDTH}-bit integers"
-            ]
+        if first_tlu_node is not None:
+            if max_bit_width > MAXIMUM_TLU_BIT_WIDTH:
+                offending_nodes[first_tlu_node] = [
+                    f"table lookups are only supported on circuits with "
+                    f"up to {MAXIMUM_TLU_BIT_WIDTH}-bit integers",
+                    first_tlu_node.location,
+                ]
 
         if len(offending_nodes) != 0:
             raise RuntimeError(
@@ -536,25 +552,26 @@ class GraphConverter:
 
             if input_dtype.is_signed:
                 assert_that(input_value.is_encrypted)
-
                 n = input_dtype.bit_width
-                lut_range = np.arange(2**n)
 
-                lut_values = np.where(lut_range < (2 ** (n - 1)), lut_range, lut_range - (2**n))
-                lut_type = RankedTensorType.get(
-                    (2**n,), IntegerType.get_signless(64, context=ctx)
-                )
-                lut_attr = DenseElementsAttr.get(lut_values, context=ctx)
-                # ConstantOp is being decorated, and the init function is supposed to take more
-                # arguments than those pylint is considering
+                sanitizer_type = IntegerType.get_signless(n + 1)
+                sanitizer = 2 ** (n - 1)
+
+                if input_value.is_scalar:
+                    sanitizer_attr = IntegerAttr.get(sanitizer_type, sanitizer)
+                else:
+                    sanitizer_type = RankedTensorType.get((1,), sanitizer_type)
+                    sanitizer_attr = Attribute.parse(f"dense<[{sanitizer}]> : {sanitizer_type}")
+
                 # pylint: disable=too-many-function-args
-                lut = arith.ConstantOp(lut_type, lut_attr).result
+                sanitizer_cst = arith.ConstantOp(sanitizer_type, sanitizer_attr)
                 # pylint: enable=too-many-function-args
+
                 resulting_type = NodeConverter.value_to_mlir_type(ctx, input_value)
                 if input_value.is_scalar:
-                    sanitized = fhe.ApplyLookupTableEintOp(resulting_type, arg, lut).result
+                    sanitized = fhe.SubEintIntOp(resulting_type, arg, sanitizer_cst).result
                 else:
-                    sanitized = fhelinalg.ApplyLookupTableEintOp(resulting_type, arg, lut).result
+                    sanitized = fhelinalg.SubEintIntOp(resulting_type, arg, sanitizer_cst).result
 
                 sanitized_args.append(sanitized)
             else:
@@ -572,7 +589,7 @@ class GraphConverter:
                 computation graph to be converted
 
             virtual  (bool, default = False):
-                whether to circuit will be virtual
+                whether the circuit will be virtual
 
         Returns:
             str:
@@ -581,7 +598,7 @@ class GraphConverter:
 
         graph = deepcopy(graph)
 
-        GraphConverter._check_graph_convertibility(graph)
+        GraphConverter._check_graph_convertibility(graph, virtual)
         if virtual:
             return "Virtual circuits don't have MLIR."
 

@@ -61,32 +61,12 @@ pip install concrete-numpy
 You can get the concrete-numpy docker image by  pulling the latest docker image:
 
 ```shell
-docker pull zamafhe/concrete-numpy:v0.8.0
+docker pull zamafhe/concrete-numpy:v0.9.0
 ```
 
 You can find more detailed installation instructions in [installing.md](docs/getting-started/installing.md)
 
 ## Getting started.
-
-```python
-import concrete.numpy as cnp
-
-@cnp.compiler({"x": "encrypted", "y": "encrypted"})
-def add(x, y):
-    return x + y
-
-inputset = [(2, 3), (0, 0), (1, 6), (7, 7), (7, 1), (3, 2), (6, 1), (1, 7), (4, 5), (5, 4)]
-
-print(f"Compiling...")
-circuit = add.compile(inputset)
-
-examples = [(3, 4), (1, 2), (7, 7), (0, 0)]
-for example in examples:
-    result = circuit.encrypt_run_decrypt(*example)
-    print(f"Evaluation of {' + '.join(map(str, example))} homomorphically = {result}")
-```
-
-if you have a function object that you cannot decorate, you can use the explicit `Compiler` API instead
 
 ```python
 import concrete.numpy as cnp
@@ -99,6 +79,31 @@ inputset = [(2, 3), (0, 0), (1, 6), (7, 7), (7, 1), (3, 2), (6, 1), (1, 7), (4, 
 
 print(f"Compiling...")
 circuit = compiler.compile(inputset)
+
+print(f"Generating keys...")
+circuit.keygen()
+
+examples = [(3, 4), (1, 2), (7, 7), (0, 0)]
+for example in examples:
+    encrypted_example = circuit.encrypt(*example)
+    encrypted_result = circuit.run(encrypted_example)
+    result = circuit.decrypt(encrypted_result)
+    print(f"Evaluation of {' + '.join(map(str, example))} homomorphically = {result}")
+```
+
+or if you have a simple function that you can decorate, and you don't care about explicit steps of key generation, encryption, evaluation and decryption:
+
+```python
+import concrete.numpy as cnp
+
+@cnp.compiler({"x": "encrypted", "y": "encrypted"})
+def add(x, y):
+    return x + y
+
+inputset = [(2, 3), (0, 0), (1, 6), (7, 7), (7, 1), (3, 2), (6, 1), (1, 7), (4, 5), (5, 4)]
+
+print(f"Compiling...")
+circuit = add.compile(inputset)
 
 examples = [(3, 4), (1, 2), (7, 7), (0, 0)]
 for example in examples:

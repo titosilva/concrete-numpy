@@ -94,8 +94,28 @@ class Server:
         options.set_loop_parallelize(configuration.loop_parallelize)
         options.set_dataflow_parallelize(configuration.dataflow_parallelize)
         options.set_auto_parallelize(configuration.auto_parallelize)
-        options.set_p_error(configuration.p_error)
-        options.set_display_optimizer_choice(configuration.verbose or configuration.show_optimizer)
+
+        global_p_error_is_set = configuration.global_p_error is not None
+        p_error_is_set = configuration.p_error is not None
+
+        if global_p_error_is_set and p_error_is_set:  # pragma: no cover
+            options.set_global_p_error(configuration.global_p_error)
+            options.set_p_error(configuration.p_error)
+
+        elif global_p_error_is_set:  # pragma: no cover
+            options.set_global_p_error(configuration.global_p_error)
+            options.set_p_error(1.0)
+
+        elif p_error_is_set:  # pragma: no cover
+            options.set_global_p_error(1.0)
+            options.set_p_error(configuration.p_error)
+
+        show_optimizer = (
+            configuration.show_optimizer
+            if configuration.show_optimizer is not None
+            else configuration.verbose
+        )
+        options.set_display_optimizer_choice(show_optimizer)
 
         if configuration.jit:
 
@@ -297,3 +317,17 @@ class Server:
         Get size of the outputs of the compiled program.
         """
         return self._compilation_feedback.total_output_size
+
+    @property
+    def p_error(self) -> int:
+        """
+        Get the probability of error for each simple TLU (on a scalar).
+        """
+        return self._compilation_feedback.p_error
+
+    @property
+    def global_p_error(self) -> int:
+        """
+        Get the probability of having at least one simple TLU error during the entire execution.
+        """
+        return self._compilation_feedback.global_p_error

@@ -8,8 +8,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from concrete.numpy import Client, ClientSpecs, EvaluationKeys, Server
-from concrete.numpy.compilation import compiler
+from concrete.numpy import Client, ClientSpecs, EvaluationKeys, Server, compiler
 
 
 def test_circuit_str(helpers):
@@ -24,18 +23,9 @@ def test_circuit_str(helpers):
         return x + y
 
     inputset = [(np.random.randint(0, 2**4), np.random.randint(0, 2**5)) for _ in range(100)]
-    circuit = f.compile(inputset, configuration)
+    circuit = f.compile(inputset, configuration.fork(p_error=6e-5))
 
-    assert str(circuit) == (
-        """
-
-%0 = x                  # EncryptedScalar<uint4>
-%1 = y                  # EncryptedScalar<uint5>
-%2 = add(%0, %1)        # EncryptedScalar<uint6>
-return %2
-
-        """.strip()
-    )
+    assert str(circuit) == circuit.graph.format()
 
 
 def test_circuit_feedback(helpers):
@@ -45,12 +35,15 @@ def test_circuit_feedback(helpers):
 
     configuration = helpers.configuration()
 
+    p_error = 0.1
+    global_p_error = 0.05
+
     @compiler({"x": "encrypted", "y": "encrypted"})
     def f(x, y):
-        return x + y
+        return np.sqrt(((x + y) ** 2) + 10).astype(np.int64)
 
-    inputset = [(np.random.randint(0, 2**4), np.random.randint(0, 2**5)) for _ in range(100)]
-    circuit = f.compile(inputset, configuration)
+    inputset = [(np.random.randint(0, 2**2), np.random.randint(0, 2**2)) for _ in range(100)]
+    circuit = f.compile(inputset, configuration, p_error=p_error, global_p_error=global_p_error)
 
     assert isinstance(circuit.complexity, float)
     assert isinstance(circuit.size_of_secret_keys, int)
@@ -58,6 +51,11 @@ def test_circuit_feedback(helpers):
     assert isinstance(circuit.size_of_keyswitch_keys, int)
     assert isinstance(circuit.size_of_inputs, int)
     assert isinstance(circuit.size_of_outputs, int)
+    assert isinstance(circuit.p_error, float)
+    assert isinstance(circuit.global_p_error, float)
+
+    assert circuit.p_error <= p_error
+    assert circuit.global_p_error <= global_p_error
 
 
 def test_circuit_bad_run(helpers):
@@ -302,3 +300,37 @@ def test_bad_server_save(helpers):
         circuit.server.save("test.zip")
 
     assert str(excinfo.value) == "Just-in-Time compilation cannot be saved"
+
+
+@pytest.mark.parametrize("p_error", [0.5, 0.1, 0.01])
+@pytest.mark.parametrize("bit_width", [10])
+@pytest.mark.parametrize("sample_size", [100_000])
+@pytest.mark.parametrize("tolerance", [0.075])
+def test_virtual_p_error(p_error, bit_width, sample_size, tolerance, helpers):
+    """
+    Test virtual circuits with p_error.
+    """
+
+    configuration = helpers.configuration()
+
+    @compiler({"x": "encrypted"})
+    def function(x):
+        return (-x) ** 2
+
+    inputset = [np.random.randint(0, 2**bit_width, size=(sample_size,)) for _ in range(100)]
+    circuit = function.compile(inputset, configuration=configuration, virtual=True, p_error=p_error)
+
+    sample = np.random.randint(0, 2**bit_width, size=(sample_size,))
+    output = circuit.encrypt_run_decrypt(sample)
+
+    errors = 0
+    for i in range(sample_size):
+        if output[i] != (-sample[i]) ** 2:
+            errors += 1
+
+    expected_number_of_errors_on_average = sample_size * p_error
+    acceptable_number_of_errors = [
+        expected_number_of_errors_on_average - (expected_number_of_errors_on_average * tolerance),
+        expected_number_of_errors_on_average + (expected_number_of_errors_on_average * tolerance),
+    ]
+    assert acceptable_number_of_errors[0] < errors < acceptable_number_of_errors[1]

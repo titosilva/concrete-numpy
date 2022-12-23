@@ -586,6 +586,62 @@ def deterministic_unary_function(x):
             },
             id="cnp.LookupTable(list(range(32)))[x + y]",
         ),
+        pytest.param(
+            lambda x: np.expand_dims(x, axis=0),
+            {
+                "x": {"status": "encrypted", "range": [-10, 10], "shape": (3, 2)},
+            },
+            id="np.expand_dims(x, axis=0)",
+        ),
+        pytest.param(
+            lambda x: np.expand_dims(x, axis=1),
+            {
+                "x": {"status": "encrypted", "range": [-10, 10], "shape": (3, 2)},
+            },
+            id="np.expand_dims(x, axis=1)",
+        ),
+        pytest.param(
+            lambda x: np.expand_dims(x, axis=2),
+            {
+                "x": {"status": "encrypted", "range": [-10, 10], "shape": (3, 2)},
+            },
+            id="np.expand_dims(x, axis=2)",
+        ),
+        pytest.param(
+            lambda x: np.expand_dims(x, axis=(0, 1)),
+            {
+                "x": {"status": "encrypted", "range": [-10, 10], "shape": (3, 2)},
+            },
+            id="np.expand_dims(x, axis=(0, 1))",
+        ),
+        pytest.param(
+            lambda x: np.expand_dims(x, axis=(0, 2)),
+            {
+                "x": {"status": "encrypted", "range": [-10, 10], "shape": (3, 2)},
+            },
+            id="np.expand_dims(x, axis=(0, 2))",
+        ),
+        pytest.param(
+            lambda x: np.expand_dims(x, axis=(1, 2)),
+            {
+                "x": {"status": "encrypted", "range": [-10, 10], "shape": (3, 2)},
+            },
+            id="np.expand_dims(x, axis=(1, 2))",
+        ),
+        pytest.param(
+            lambda x: np.expand_dims(x, axis=(0, 1, 2)),
+            {
+                "x": {"status": "encrypted", "range": [-10, 10], "shape": (3, 2)},
+            },
+            id="np.expand_dims(x, axis=(0, 1, 2))",
+        ),
+        pytest.param(
+            lambda x: x**3,
+            {
+                "x": {"status": "encrypted", "range": [-30, 30]},
+            },
+            id="x ** 3",
+        ),
     ],
 )
 def test_others(function, parameters, helpers):
@@ -651,61 +707,37 @@ def test_others_bad_fusing(helpers):
         # pylint: disable=line-too-long
         """
 
-Function you are trying to compile cannot be converted to MLIR
+A subgraph within the function you are trying to compile cannot be fused because it has multiple input nodes
 
- %0 = 10                             # ClearScalar<uint4>
- %1 = 10                             # ClearScalar<uint4>
- %2 = 2                              # ClearScalar<uint2>
+ %0 = x                              # EncryptedScalar<uint1>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ this is one of the input nodes
+ %1 = y                              # ClearScalar<uint1>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ this is one of the input nodes
+ %2 = sin(%0)                        # EncryptedScalar<float64>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ within this subgraph
  %3 = 2                              # ClearScalar<uint2>
- %4 = x                              # EncryptedScalar<uint7>
- %5 = y                              # ClearScalar<uint7>
- %6 = sin(%4)                        # EncryptedScalar<float64>
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ only integer operations are supported
- %7 = cos(%5)                        # ClearScalar<float64>
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ only integer operations are supported
- %8 = power(%6, %2)                  # EncryptedScalar<float64>
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ only integer operations are supported
- %9 = power(%7, %3)                  # ClearScalar<float64>
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ only integer operations are supported
-%10 = multiply(%0, %8)               # EncryptedScalar<float64>
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ only integer operations are supported
-%11 = multiply(%1, %9)               # ClearScalar<float64>
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ only integer operations are supported
-%12 = add(%10, %11)                  # EncryptedScalar<float64>
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ only integer operations are supported
-%13 = astype(%12, dtype=int_)        # EncryptedScalar<uint4>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ within this subgraph
+ %4 = power(%2, %3)                  # EncryptedScalar<float64>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ within this subgraph
+ %5 = 10                             # ClearScalar<uint4>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ within this subgraph
+ %6 = multiply(%5, %4)               # EncryptedScalar<float64>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ within this subgraph
+ %7 = cos(%1)                        # ClearScalar<float64>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ within this subgraph
+ %8 = 2                              # ClearScalar<uint2>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ within this subgraph
+ %9 = power(%7, %8)                  # ClearScalar<float64>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ within this subgraph
+%10 = 10                             # ClearScalar<uint4>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ within this subgraph
+%11 = multiply(%10, %9)              # ClearScalar<float64>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ within this subgraph
+%12 = add(%6, %11)                   # EncryptedScalar<float64>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ within this subgraph
+%13 = astype(%12, dtype=int_)        # EncryptedScalar<uint1>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ within this subgraph
 return %13
-
-        """,  # noqa: E501
-        # pylint: enable=line-too-long
-        str(excinfo.value),
-    )
-
-    # big intermediate constants
-    # --------------------------
-
-    @cnp.compiler({"x": "encrypted"})
-    def function2(x):
-        return (np.sin(x) * [[1, 2], [3, 4]]).astype(np.int64)
-
-    with pytest.raises(RuntimeError) as excinfo:
-        inputset = range(100)
-        function2.compile(inputset, configuration)
-
-    helpers.check_str(
-        # pylint: disable=line-too-long
-        """
-
-Function you are trying to compile cannot be converted to MLIR
-
-%0 = [[1 2] [3 4]]                 # ClearTensor<uint3, shape=(2, 2)>
-%1 = x                             # EncryptedScalar<uint7>
-%2 = sin(%1)                       # EncryptedScalar<float64>
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ only integer operations are supported
-%3 = multiply(%2, %0)              # EncryptedTensor<float64, shape=(2, 2)>
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ only integer operations are supported
-%4 = astype(%3, dtype=int_)        # EncryptedTensor<int3, shape=(2, 2)>
-return %4
 
         """,  # noqa: E501
         # pylint: enable=line-too-long
@@ -716,28 +748,94 @@ return %4
     # ----------------------------------
 
     @cnp.compiler({"x": "encrypted"})
-    def function3(x):
+    def function2(x):
         return np.abs(np.sin(x)).reshape((2, 3)).astype(np.int64)
 
     with pytest.raises(RuntimeError) as excinfo:
         inputset = [np.random.randint(0, 2**7, size=(3, 2)) for _ in range(100)]
+        function2.compile(inputset, configuration)
+
+    helpers.check_str(
+        # pylint: disable=line-too-long
+        """
+
+A subgraph within the function you are trying to compile cannot be fused because of a node, which is has a different shape than the input node
+
+%0 = x                                   # EncryptedTensor<uint7, shape=(3, 2)>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ with this input node
+%1 = sin(%0)                             # EncryptedTensor<float64, shape=(3, 2)>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ within this subgraph
+%2 = absolute(%1)                        # EncryptedTensor<float64, shape=(3, 2)>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ within this subgraph
+%3 = reshape(%2, newshape=(2, 3))        # EncryptedTensor<float64, shape=(2, 3)>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ within this subgraph
+%4 = astype(%3, dtype=int_)              # EncryptedTensor<uint1, shape=(2, 3)>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ this node has a different shape than the input node
+return %4
+
+        """,  # noqa: E501
+        # pylint: enable=line-too-long
+        str(excinfo.value),
+    )
+
+    # non-fusable operation
+    # ---------------------
+
+    @cnp.compiler({"x": "encrypted"})
+    def function3(x):
+        return np.abs(np.sin(x)).transpose().astype(np.int64)
+
+    with pytest.raises(RuntimeError) as excinfo:
+        inputset = [[[0, 1], [2, 3]]]
         function3.compile(inputset, configuration)
 
     helpers.check_str(
         # pylint: disable=line-too-long
         """
 
-Function you are trying to compile cannot be converted to MLIR
+A subgraph within the function you are trying to compile cannot be fused because of a node, which is marked explicitly as non-fusable
 
-%0 = x                                   # EncryptedTensor<uint7, shape=(3, 2)>
-%1 = sin(%0)                             # EncryptedTensor<float64, shape=(3, 2)>
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ only integer operations are supported
-%2 = absolute(%1)                        # EncryptedTensor<float64, shape=(3, 2)>
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ only integer operations are supported
-%3 = reshape(%2, newshape=(2, 3))        # EncryptedTensor<float64, shape=(2, 3)>
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ only integer operations are supported
-%4 = astype(%3, dtype=int_)              # EncryptedTensor<uint1, shape=(2, 3)>
+%0 = x                             # EncryptedTensor<uint2, shape=(2, 2)>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ with this input node
+%1 = sin(%0)                       # EncryptedTensor<float64, shape=(2, 2)>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ within this subgraph
+%2 = absolute(%1)                  # EncryptedTensor<float64, shape=(2, 2)>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ within this subgraph
+%3 = transpose(%2)                 # EncryptedTensor<float64, shape=(2, 2)>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ this node is not fusable
+%4 = astype(%3, dtype=int_)        # EncryptedTensor<uint1, shape=(2, 2)>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ within this subgraph
 return %4
+
+        """,  # noqa: E501
+        # pylint: enable=line-too-long
+        str(excinfo.value),
+    )
+
+    # integer two variable inputs
+    # ---------------------------
+
+    @cnp.compiler({"x": "encrypted", "y": "clear"})
+    def function4(x, y):
+        return np.maximum(x, y)
+
+    with pytest.raises(RuntimeError) as excinfo:
+        inputset = [(i, i) for i in range(100)]
+        function4.compile(inputset, configuration)
+
+    helpers.check_str(
+        # pylint: disable=line-too-long
+        """
+
+A subgraph within the function you are trying to compile cannot be fused because it has multiple input nodes
+
+%0 = x                      # EncryptedScalar<uint1>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ this is one of the input nodes
+%1 = y                      # ClearScalar<uint1>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ this is one of the input nodes
+%2 = maximum(%0, %1)        # EncryptedScalar<uint1>
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ within this subgraph
+return %2
 
         """,  # noqa: E501
         # pylint: enable=line-too-long

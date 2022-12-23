@@ -15,9 +15,9 @@ class Configuration:
     # pylint: disable=too-many-instance-attributes
 
     verbose: bool
-    show_graph: bool
-    show_mlir: bool
-    show_optimizer: bool
+    show_graph: Optional[bool]
+    show_mlir: Optional[bool]
+    show_optimizer: Optional[bool]
     dump_artifacts_on_unexpected_failures: bool
     enable_unsafe_features: bool
     virtual: bool
@@ -26,8 +26,10 @@ class Configuration:
     dataflow_parallelize: bool
     auto_parallelize: bool
     jit: bool
-    p_error: float
+    p_error: Optional[float]
+    global_p_error: Optional[float]
     insecure_key_cache_location: Optional[str]
+    auto_adjust_rounders: bool
 
     # pylint: enable=too-many-instance-attributes
 
@@ -58,9 +60,9 @@ class Configuration:
     def __init__(
         self,
         verbose: bool = False,
-        show_graph: bool = False,
-        show_mlir: bool = False,
-        show_optimizer: bool = False,
+        show_graph: Optional[bool] = None,
+        show_mlir: Optional[bool] = None,
+        show_optimizer: Optional[bool] = None,
         dump_artifacts_on_unexpected_failures: bool = True,
         enable_unsafe_features: bool = False,
         virtual: bool = False,
@@ -70,7 +72,9 @@ class Configuration:
         dataflow_parallelize: bool = False,
         auto_parallelize: bool = False,
         jit: bool = False,
-        p_error: float = 6.3342483999973e-05,
+        p_error: Optional[float] = None,
+        global_p_error: Optional[float] = (1 / 100_000),
+        auto_adjust_rounders: bool = False,
     ):
         self.verbose = verbose
         self.show_graph = show_graph
@@ -88,6 +92,8 @@ class Configuration:
         self.auto_parallelize = auto_parallelize
         self.jit = jit
         self.p_error = p_error
+        self.global_p_error = global_p_error
+        self.auto_adjust_rounders = auto_adjust_rounders
 
         self._validate()
 
@@ -106,6 +112,8 @@ class Configuration:
                 configuration that is forked from self and updated using kwargs
         """
 
+        # pylint: disable=too-many-branches
+
         result = deepcopy(self)
 
         hints = get_type_hints(Configuration)
@@ -121,6 +129,21 @@ class Configuration:
                 if not (value is None or isinstance(value, str)):
                     is_correctly_typed = False
                     expected = "Optional[str]"
+
+            elif name == "p_error":
+                if not (value is None or isinstance(value, float)):
+                    is_correctly_typed = False
+                    expected = "Optional[float]"
+
+            elif name == "global_p_error":
+                if not (value is None or isinstance(value, float)):
+                    is_correctly_typed = False
+                    expected = "Optional[float]"
+
+            elif name in ["show_graph", "show_mlir", "show_optimizer"]:
+                if not (value is None or isinstance(value, bool)):
+                    is_correctly_typed = False
+                    expected = "Optional[bool]"
 
             elif not isinstance(value, hint):  # type: ignore
                 is_correctly_typed = False
@@ -140,3 +163,5 @@ class Configuration:
         # pylint: enable=protected-access
 
         return result
+
+        # pylint: enable=too-many-branches

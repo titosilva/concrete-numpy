@@ -38,7 +38,7 @@ jobs:
       needs-310-linux-runner: ${{ steps.set-matrix.outputs.needs-310-linux-runner }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
 
       - name: Set matrix
         id: set-matrix
@@ -115,7 +115,7 @@ jobs:
       matrix: ${{ steps.update-linux-matrix.outputs.linux-matrix }}
     steps:
       - name: Checkout Code
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@67fbcbb121271f7775d2e7715933280b06314838
@@ -127,7 +127,7 @@ jobs:
       - name: Start EC2 runner python 37
         id: start-ec2-runner-37
         if: ${{ !cancelled() && fromJSON(needs.matrix-preparation.outputs.needs-37-linux-runner) }}
-        uses: machulav/ec2-github-runner@c34ba2df3363ebde9d19fdbc341e03d02267284d
+        uses: machulav/ec2-github-runner@4e0303de215db88e1c489e07a15ca4d867f488ea
         with:
           mode: start
           github-token: ${{ secrets.EC2_RUNNER_BOT_TOKEN }}
@@ -139,7 +139,7 @@ jobs:
       - name: Start EC2 runner python 38
         id: start-ec2-runner-38
         if: ${{ !cancelled() && fromJSON(needs.matrix-preparation.outputs.needs-38-linux-runner) }}
-        uses: machulav/ec2-github-runner@c34ba2df3363ebde9d19fdbc341e03d02267284d
+        uses: machulav/ec2-github-runner@4e0303de215db88e1c489e07a15ca4d867f488ea
         with:
           mode: start
           github-token: ${{ secrets.EC2_RUNNER_BOT_TOKEN }}
@@ -151,7 +151,7 @@ jobs:
       - name: Start EC2 runner python 39
         id: start-ec2-runner-39
         if: ${{ !cancelled() && fromJSON(needs.matrix-preparation.outputs.needs-39-linux-runner) }}
-        uses: machulav/ec2-github-runner@c34ba2df3363ebde9d19fdbc341e03d02267284d
+        uses: machulav/ec2-github-runner@4e0303de215db88e1c489e07a15ca4d867f488ea
         with:
           mode: start
           github-token: ${{ secrets.EC2_RUNNER_BOT_TOKEN }}
@@ -163,7 +163,7 @@ jobs:
       - name: Start EC2 runner python 310
         id: start-ec2-runner-310
         if: ${{ !cancelled() && fromJSON(needs.matrix-preparation.outputs.needs-310-linux-runner) }}
-        uses: machulav/ec2-github-runner@c34ba2df3363ebde9d19fdbc341e03d02267284d
+        uses: machulav/ec2-github-runner@4e0303de215db88e1c489e07a15ca4d867f488ea
         with:
           mode: start
           github-token: ${{ secrets.EC2_RUNNER_BOT_TOKEN }}
@@ -216,13 +216,13 @@ jobs:
           apt update && apt install git -y
 
       - name: Checkout Code
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
         # Fetch-detph 0 to have all commits for changelog generation
         with:
           fetch-depth: 0
 
       - name: Set up Python ${{ matrix.python_version }}
-        uses: actions/setup-python@b55428b1882923874294fa556849718a1d7f2ca5
+        uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984
         with:
           python-version: ${{ matrix.python_version }}
 
@@ -303,7 +303,7 @@ jobs:
 
       - name: Upload changelog artifacts
         if: ${{ fromJSON(env.IS_REF_BUILD) && steps.changelog.outcome == 'success' && !cancelled() }}
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
+        uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb
         with:
           name: changelog
           path: ${{ steps.changelog.outputs.changelog-file }}
@@ -320,7 +320,7 @@ jobs:
 
       - name: Upload wheel artifact
         if: ${{ fromJSON(env.IS_REF_BUILD) && steps.build-wheel.outcome == 'success' }}
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8
+        uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb
         with:
           name: py3-wheel
           path: dist/*.whl
@@ -349,7 +349,7 @@ jobs:
           ./script/actions_utils/coverage.sh .global-coverage.json
 
       - name: Comment with coverage
-        uses: marocchino/sticky-pull-request-comment@39c5b5dc7717447d0cba270cd115037d32d28443
+        uses: marocchino/sticky-pull-request-comment@fcf6fe9e4a0409cd9316a5011435be0f3327f1e1
         if: ${{ steps.coverage.outcome != 'skipped' && !cancelled() }}
         continue-on-error: true
         with:
@@ -398,7 +398,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Stop EC2 runner python 37
-        uses: machulav/ec2-github-runner@c34ba2df3363ebde9d19fdbc341e03d02267284d
+        uses: machulav/ec2-github-runner@4e0303de215db88e1c489e07a15ca4d867f488ea
         if: ${{ always() && needs.start-runner-linux.outputs.ec2-instance-id-37 }}
         with:
           github-token: ${{ secrets.EC2_RUNNER_BOT_TOKEN }}
@@ -407,7 +407,7 @@ jobs:
           mode: stop
 
       - name: Stop EC2 runner python 38
-        uses: machulav/ec2-github-runner@c34ba2df3363ebde9d19fdbc341e03d02267284d
+        uses: machulav/ec2-github-runner@4e0303de215db88e1c489e07a15ca4d867f488ea
         if: ${{ always() && needs.start-runner-linux.outputs.ec2-instance-id-38 }}
         with:
           github-token: ${{ secrets.EC2_RUNNER_BOT_TOKEN }}
@@ -416,7 +416,7 @@ jobs:
           mode: stop
 
       - name: Stop EC2 runner python 39
-        uses: machulav/ec2-github-runner@c34ba2df3363ebde9d19fdbc341e03d02267284d
+        uses: machulav/ec2-github-runner@4e0303de215db88e1c489e07a15ca4d867f488ea
         if: ${{ always() && needs.start-runner-linux.outputs.ec2-instance-id-39 }}
         with:
           github-token: ${{ secrets.EC2_RUNNER_BOT_TOKEN }}
@@ -425,7 +425,7 @@ jobs:
           mode: stop
 
       - name: Stop EC2 runner python 310
-        uses: machulav/ec2-github-runner@c34ba2df3363ebde9d19fdbc341e03d02267284d
+        uses: machulav/ec2-github-runner@4e0303de215db88e1c489e07a15ca4d867f488ea
         if: ${{ always() && needs.start-runner-linux.outputs.ec2-instance-id-310 }}
         with:
           github-token: ${{ secrets.EC2_RUNNER_BOT_TOKEN }}
@@ -446,10 +446,10 @@ jobs:
       matrix: ${{ fromJSON(format('{{"include":{0}}}', needs.matrix-preparation.outputs.macos-matrix)) }}
     steps:
       - name: Checkout Code
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
 
       - name: Set up Python ${{ matrix.python_version }}
-        uses: actions/setup-python@b55428b1882923874294fa556849718a1d7f2ca5
+        uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984
         with:
           python-version: ${{ matrix.python_version }}
 
@@ -472,10 +472,10 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout Code
-        uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
 
       - name: Set up Python 3.8
-        uses: actions/setup-python@b55428b1882923874294fa556849718a1d7f2ca5
+        uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984
         with:
           python-version: '3.8'
 
@@ -533,7 +533,7 @@ jobs:
       PUBLIC_RELEASE_IMAGE_BASE: zamafhe/concrete-numpy
 
     steps:
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
 
       # See #570 To be updated to only install required dependencies group with poetry 1.2 and
       # remove graphviz installs which are only required for the actual package and not dev tools
@@ -610,7 +610,7 @@ jobs:
       - name: Download changelog
         if: ${{ success() && !cancelled() }}
         id: download-changelog
-        uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7
         with:
           name: changelog
           path: ${{ env.ARTIFACTS_RAW_DIR }}/changelog/
@@ -618,7 +618,7 @@ jobs:
       - name: Download python3 wheel
         if: ${{ success() && !cancelled() }}
         id: download-wheel
-        uses: actions/download-artifact@fb598a63ae348fa914e94cd0ff38f362e927b741
+        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7
         with:
           name: py3-wheel
           path: ${{ env.ARTIFACTS_PACKAGED_DIR }}/
@@ -629,7 +629,7 @@ jobs:
           cp "${{ env.ARTIFACTS_PACKAGED_DIR }}"/*.whl ./pkg
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
         with:
           registry: ghcr.io
           username: ${{ secrets.BOT_USERNAME }}
@@ -637,14 +637,14 @@ jobs:
 
       - name: Login to DockerHub
         if: ${{ env.IS_PRERELEASE == 'false' }}
-        uses: docker/login-action@49ed152c8eca782a232dede0303416e8f356c37b
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
         with:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build concrete-numpy Image
         if: ${{ success() && !cancelled() }}
-        uses: docker/build-push-action@c84f38281176d4c9cdb1626ffafcd6b3911b5d94
+        uses: docker/build-push-action@c56af957549030174b10d6867f20e78cfd7debc5
         with:
           context: .
           file: docker/Dockerfile.release
@@ -751,7 +751,7 @@ jobs:
     name: Send Slack notification
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@2541b1294d2704b0964813337f33b291d3f8596b
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
 
       - name: Prepare whole job status
         if: ${{ always() }}

@@ -1,6 +1,6 @@
 # Quick Start
 
-To compute on encrypted data, you first need to define the function that you want to compute, then compile it into a Concrete Numpy `Circuit`, which you can use to perform homomorphic evaluation.
+To compute on encrypted data, you first need to define the function that you want to compute, then compile it into a Concrete-Numpy `Circuit`, which you can use to perform homomorphic evaluation.
 
 Here is the full example that we will walk through:
 
@@ -62,6 +62,10 @@ It should be an iterable, yielding tuples of the same length as the number of ar
 ```python
 inputset = [(2, 3), (0, 0), (1, 6), (7, 7), (7, 1)]
 ```
+
+{% hint style="warning" %}
+All inputs in the inputset will be evaluated in the graph, which takes time. If you're experiencing long compilation times, consider providing a smaller inputset.
+{% endhint %}
 
 ## Compiling the function
 
