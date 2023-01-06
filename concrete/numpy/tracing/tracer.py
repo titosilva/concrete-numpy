@@ -287,6 +287,15 @@ class Tracer:
         np.zeros_like,
     }
 
+    SUPPORTED_COMPARISON_OPERATORS = {
+        np.greater,
+        np.greater_equal,
+        np.less,
+        np.less_equal,
+        np.equal,
+        np.not_equal,
+    }
+
     SUPPORTED_KWARGS: Dict[Any, Set[str]] = {
         np.around: {
             "decimals",
@@ -394,11 +403,11 @@ class Tracer:
             extract_tracers(arg, tracers)
 
         some_input_is_const = any(tracer.computation.operation == Operation.Constant for tracer in tracers)
-        if operation == np.greater and not some_input_is_const:
+        if operation in Tracer.SUPPORTED_COMPARISON_OPERATORS and not some_input_is_const:
             sub_tracer = Tracer._trace_numpy_operation(np.subtract, *args, **kwargs)
             const0 = Tracer.sanitize(0)
-            gt0_node = Tracer._trace_numpy_operation(np.greater, sub_tracer, const0)
-            return gt0_node
+            comp0_node = Tracer._trace_numpy_operation(operation, sub_tracer, const0)
+            return comp0_node
 
         output_value = Value.of(evaluation)
         output_value.is_encrypted = any(tracer.output.is_encrypted for tracer in tracers)

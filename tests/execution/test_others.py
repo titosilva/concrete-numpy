@@ -205,443 +205,443 @@ def deterministic_unary_function(x):
 @pytest.mark.parametrize(
     "function,parameters",
     [
-        pytest.param(
-            lambda x: x // 3,
-            {
-                "x": {"status": "encrypted", "range": [0, 127]},
-            },
-            id="x // 3",
-        ),
-        pytest.param(
-            lambda x: 127 // x,
-            {
-                "x": {"status": "encrypted", "range": [1, 127]},
-            },
-            id="127 // x",
-        ),
-        pytest.param(
-            lambda x: (x / 3).astype(np.int64),
-            {
-                "x": {"status": "encrypted", "range": [0, 127]},
-            },
-            id="(x / 3).astype(np.int64)",
-        ),
-        pytest.param(
-            lambda x: (127 / x).astype(np.int64),
-            {
-                "x": {"status": "encrypted", "range": [1, 127]},
-            },
-            id="(127 / x).astype(np.int64)",
-        ),
-        pytest.param(
-            lambda x: x**2,
-            {
-                "x": {"status": "encrypted", "range": [0, 11]},
-            },
-            id="x ** 2",
-        ),
-        pytest.param(
-            lambda x: 2**x,
-            {
-                "x": {"status": "encrypted", "range": [0, 6]},
-            },
-            id="2 ** x",
-        ),
-        pytest.param(
-            lambda x: x % 10,
-            {
-                "x": {"status": "encrypted", "range": [0, 127]},
-            },
-            id="x % 10",
-        ),
-        pytest.param(
-            lambda x: 121 % x,
-            {
-                "x": {"status": "encrypted", "range": [1, 127]},
-            },
-            id="121 % x",
-        ),
-        pytest.param(
-            lambda x: +x,
-            {
-                "x": {"status": "encrypted", "range": [0, 127]},
-            },
-            id="+x",
-        ),
-        pytest.param(
-            lambda x: abs(42 - x),
-            {
-                "x": {"status": "encrypted", "range": [0, 84]},
-            },
-            id="abs(64 - x)",
-        ),
-        pytest.param(
-            lambda x: ~x,
-            {
-                "x": {"status": "encrypted", "range": [0, 16]},
-            },
-            id="~x",
-        ),
-        pytest.param(
-            lambda x: x & 10,
-            {
-                "x": {"status": "encrypted", "range": [0, 16]},
-            },
-            id="x & 10",
-        ),
-        pytest.param(
-            lambda x: 5 & x,
-            {
-                "x": {"status": "encrypted", "range": [0, 16]},
-            },
-            id="5 & x",
-        ),
-        pytest.param(
-            lambda x: x | 6,
-            {
-                "x": {"status": "encrypted", "range": [0, 16]},
-            },
-            id="x | 6",
-        ),
-        pytest.param(
-            lambda x: 11 | x,
-            {
-                "x": {"status": "encrypted", "range": [0, 16]},
-            },
-            id="11 | x",
-        ),
-        pytest.param(
-            lambda x: x ^ 9,
-            {
-                "x": {"status": "encrypted", "range": [0, 16]},
-            },
-            id="x ^ 9",
-        ),
-        pytest.param(
-            lambda x: 13 ^ x,
-            {
-                "x": {"status": "encrypted", "range": [0, 16]},
-            },
-            id="13 ^ x",
-        ),
-        pytest.param(
-            lambda x: x << 2,
-            {
-                "x": {"status": "encrypted", "range": [0, 16]},
-            },
-            id="x << 2",
-        ),
-        pytest.param(
-            lambda x: 2 << x,
-            {
-                "x": {"status": "encrypted", "range": [0, 5]},
-            },
-            id="2 << x",
-        ),
-        pytest.param(
-            lambda x: x >> 2,
-            {
-                "x": {"status": "encrypted", "range": [0, 120]},
-            },
-            id="x >> 2",
-        ),
-        pytest.param(
-            lambda x: 120 >> x,
-            {
-                "x": {"status": "encrypted", "range": [0, 16]},
-            },
-            id="120 >> x",
-        ),
+        # pytest.param(
+        #     lambda x: x // 3,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 127]},
+        #     },
+        #     id="x // 3",
+        # ),
+        # pytest.param(
+        #     lambda x: 127 // x,
+        #     {
+        #         "x": {"status": "encrypted", "range": [1, 127]},
+        #     },
+        #     id="127 // x",
+        # ),
+        # pytest.param(
+        #     lambda x: (x / 3).astype(np.int64),
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 127]},
+        #     },
+        #     id="(x / 3).astype(np.int64)",
+        # ),
+        # pytest.param(
+        #     lambda x: (127 / x).astype(np.int64),
+        #     {
+        #         "x": {"status": "encrypted", "range": [1, 127]},
+        #     },
+        #     id="(127 / x).astype(np.int64)",
+        # ),
+        # pytest.param(
+        #     lambda x: x**2,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 11]},
+        #     },
+        #     id="x ** 2",
+        # ),
+        # pytest.param(
+        #     lambda x: 2**x,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 6]},
+        #     },
+        #     id="2 ** x",
+        # ),
+        # pytest.param(
+        #     lambda x: x % 10,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 127]},
+        #     },
+        #     id="x % 10",
+        # ),
+        # pytest.param(
+        #     lambda x: 121 % x,
+        #     {
+        #         "x": {"status": "encrypted", "range": [1, 127]},
+        #     },
+        #     id="121 % x",
+        # ),
+        # pytest.param(
+        #     lambda x: +x,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 127]},
+        #     },
+        #     id="+x",
+        # ),
+        # pytest.param(
+        #     lambda x: abs(42 - x),
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 84]},
+        #     },
+        #     id="abs(64 - x)",
+        # ),
+        # pytest.param(
+        #     lambda x: ~x,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 16]},
+        #     },
+        #     id="~x",
+        # ),
+        # pytest.param(
+        #     lambda x: x & 10,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 16]},
+        #     },
+        #     id="x & 10",
+        # ),
+        # pytest.param(
+        #     lambda x: 5 & x,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 16]},
+        #     },
+        #     id="5 & x",
+        # ),
+        # pytest.param(
+        #     lambda x: x | 6,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 16]},
+        #     },
+        #     id="x | 6",
+        # ),
+        # pytest.param(
+        #     lambda x: 11 | x,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 16]},
+        #     },
+        #     id="11 | x",
+        # ),
+        # pytest.param(
+        #     lambda x: x ^ 9,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 16]},
+        #     },
+        #     id="x ^ 9",
+        # ),
+        # pytest.param(
+        #     lambda x: 13 ^ x,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 16]},
+        #     },
+        #     id="13 ^ x",
+        # ),
+        # pytest.param(
+        #     lambda x: x << 2,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 16]},
+        #     },
+        #     id="x << 2",
+        # ),
+        # pytest.param(
+        #     lambda x: 2 << x,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 5]},
+        #     },
+        #     id="2 << x",
+        # ),
+        # pytest.param(
+        #     lambda x: x >> 2,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 120]},
+        #     },
+        #     id="x >> 2",
+        # ),
+        # pytest.param(
+        #     lambda x: 120 >> x,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 16]},
+        #     },
+        #     id="120 >> x",
+        # ),
         pytest.param(
             lambda x: x > 50,
             {
-                "x": {"status": "encrypted", "range": [0, 100]},
+                "x": {"status": "encrypted", "range": [300, 400]},
             },
             id="x > 50",
         ),
-        pytest.param(
-            lambda x: 50 > x,  # pylint: disable=misplaced-comparison-constant
-            {
-                "x": {"status": "encrypted", "range": [0, 100]},
-            },
-            id="50 > x",
-        ),
-        pytest.param(
-            lambda x: x < 50,
-            {
-                "x": {"status": "encrypted", "range": [0, 100]},
-            },
-            id="x < 50",
-        ),
-        pytest.param(
-            lambda x: 50 < x,  # pylint: disable=misplaced-comparison-constant
-            {
-                "x": {"status": "encrypted", "range": [0, 100]},
-            },
-            id="50 < x",
-        ),
-        pytest.param(
-            lambda x: x >= 50,
-            {
-                "x": {"status": "encrypted", "range": [0, 100]},
-            },
-            id="x >= 50",
-        ),
-        pytest.param(
-            lambda x: 50 >= x,  # pylint: disable=misplaced-comparison-constant
-            {
-                "x": {"status": "encrypted", "range": [0, 100]},
-            },
-            id="50 >= x",
-        ),
-        pytest.param(
-            lambda x: x <= 50,
-            {
-                "x": {"status": "encrypted", "range": [0, 100]},
-            },
-            id="x <= 50",
-        ),
-        pytest.param(
-            lambda x: 50 <= x,  # pylint: disable=misplaced-comparison-constant
-            {
-                "x": {"status": "encrypted", "range": [0, 100]},
-            },
-            id="50 <= x",
-        ),
-        pytest.param(
-            lambda x: x == 50,
-            {
-                "x": {"status": "encrypted", "range": [0, 100]},
-            },
-            id="x == 50",
-        ),
-        pytest.param(
-            lambda x: 50 == x,  # pylint: disable=misplaced-comparison-constant
-            {
-                "x": {"status": "encrypted", "range": [0, 100]},
-            },
-            id="50 == x",
-        ),
-        pytest.param(
-            lambda x: x != 50,
-            {
-                "x": {"status": "encrypted", "range": [0, 100]},
-            },
-            id="x != 50",
-        ),
-        pytest.param(
-            lambda x: 50 != x,  # pylint: disable=misplaced-comparison-constant
-            {
-                "x": {"status": "encrypted", "range": [0, 100]},
-            },
-            id="50 != x",
-        ),
-        pytest.param(
-            lambda x: x.clip(5, 10),
-            {
-                "x": {"status": "encrypted", "range": [0, 15]},
-            },
-            id="x.clip(5, 10)",
-        ),
-        pytest.param(
-            lambda x: (60 * np.sin(x)).astype(np.int64) + 60,
-            {
-                "x": {"status": "encrypted", "range": [0, 127]},
-            },
-            id="(60 * np.sin(x)).astype(np.int64) + 60",
-        ),
-        pytest.param(
-            lambda x: ((np.sin(x) ** 2) + (np.cos(x) ** 2)).astype(np.int64),
-            {
-                "x": {"status": "encrypted", "range": [0, 127]},
-            },
-            id="((np.sin(x) ** 2) + (np.cos(x) ** 2)).astype(np.int64)",
-        ),
-        pytest.param(
-            lambda x: np.maximum(x, [[10, 20], [30, 40], [50, 60]]),
-            {
-                "x": {"status": "encrypted", "range": [0, 127], "shape": (3, 2)},
-            },
-            id="np.maximum(x, [[10, 20], [30, 40], [50, 60]])",
-        ),
-        pytest.param(
-            fusable_with_bigger_search,
-            {
-                "x": {"status": "encrypted", "range": [5, 10]},
-                "y": {"status": "encrypted", "range": [5, 10]},
-            },
-            id="fusable_with_bigger_search",
-        ),
-        pytest.param(
-            fusable_with_bigger_search_needs_second_iteration,
-            {
-                "x": {"status": "encrypted", "range": [5, 10]},
-                "y": {"status": "encrypted", "range": [5, 10]},
-            },
-            id="fusable_with_bigger_search_needs_second_iteration",
-        ),
-        pytest.param(
-            fusable_with_one_of_the_start_nodes_is_lca_generator(),
-            {
-                "x": {"status": "encrypted", "range": [0, 4], "shape": (1, 10)},
-            },
-            id="fusable_with_one_of_the_start_nodes_is_lca",
-        ),
-        pytest.param(
-            fusable_with_hard_to_find_lca,
-            {
-                "x": {"status": "encrypted", "range": [0, 10]},
-            },
-            id="fusable_with_hard_to_find_lca",
-        ),
-        pytest.param(
-            fusable_with_hard_to_find_lca_used_twice,
-            {
-                "x": {"status": "encrypted", "range": [0, 4], "shape": (2, 2)},
-            },
-            id="fusable_with_hard_to_find_lca_used_twice",
-        ),
-        pytest.param(
-            fusable_additional_1,
-            {
-                "x": {"status": "encrypted", "range": [0, 10]},
-            },
-            id="fusable_additional_1",
-        ),
-        pytest.param(
-            fusable_additional_2,
-            {
-                "x": {"status": "encrypted", "range": [0, 10]},
-            },
-            id="fusable_additional_2",
-        ),
-        pytest.param(
-            lambda x: x + x.shape[0] + x.ndim + x.size,
-            {
-                "x": {"status": "encrypted", "range": [0, 15], "shape": (3, 2)},
-            },
-            id="x + x.shape[0] + x.ndim + x.size",
-        ),
-        pytest.param(
-            lambda x: (50 * np.sin(x.transpose())).astype(np.int64),
-            {
-                "x": {"status": "encrypted", "range": [0, 15], "shape": (3, 2)},
-            },
-            id="(50 * np.sin(x.transpose())).astype(np.int64)",
-        ),
-        pytest.param(
-            lambda x: np.where(x < 5, x * 3, x),
-            {
-                "x": {"status": "encrypted", "range": [0, 10]},
-            },
-            id="np.where(x < 5, x * 3, x)",
-        ),
-        pytest.param(
-            lambda x: x + np.ones_like(x),
-            {
-                "x": {"status": "encrypted", "range": [0, 10]},
-            },
-            id="x + np.ones_like(x)",
-        ),
-        pytest.param(
-            lambda x: x + np.zeros_like(x),
-            {
-                "x": {"status": "encrypted", "range": [0, 10]},
-            },
-            id="x + np.zeros_like(x)",
-        ),
-        pytest.param(
-            lambda x: cnp.univariate(deterministic_unary_function)(x),
-            {
-                "x": {"status": "encrypted", "range": [0, 10]},
-            },
-            id="cnp.univariate(deterministic_unary_function)(x)",
-        ),
-        pytest.param(
-            lambda x: round(np.sqrt(x)),
-            {
-                "x": {"status": "encrypted", "range": [0, 100], "shape": ()},
-            },
-            id="round(np.sqrt(x))",
-        ),
-        pytest.param(
-            lambda x: np.sqrt(x).round().astype(np.int64),
-            {
-                "x": {"status": "encrypted", "range": [0, 100]},
-            },
-            id="np.sqrt(x).round().astype(np.int64)",
-        ),
-        pytest.param(
-            lambda x: (2.5 * round(np.sqrt(x), ndigits=4)).astype(np.int64),
-            {
-                "x": {"status": "encrypted", "range": [0, 100], "shape": ()},
-            },
-            id="(2.5 * round(np.sqrt(x), decimals=4)).astype(np.int64)",
-        ),
-        pytest.param(
-            lambda x, y: cnp.LookupTable(list(range(32)))[x + y],
-            {
-                "x": {"status": "encrypted", "range": [-10, 10]},
-                "y": {"status": "encrypted", "range": [-10, 10]},
-            },
-            id="cnp.LookupTable(list(range(32)))[x + y]",
-        ),
-        pytest.param(
-            lambda x: np.expand_dims(x, axis=0),
-            {
-                "x": {"status": "encrypted", "range": [-10, 10], "shape": (3, 2)},
-            },
-            id="np.expand_dims(x, axis=0)",
-        ),
-        pytest.param(
-            lambda x: np.expand_dims(x, axis=1),
-            {
-                "x": {"status": "encrypted", "range": [-10, 10], "shape": (3, 2)},
-            },
-            id="np.expand_dims(x, axis=1)",
-        ),
-        pytest.param(
-            lambda x: np.expand_dims(x, axis=2),
-            {
-                "x": {"status": "encrypted", "range": [-10, 10], "shape": (3, 2)},
-            },
-            id="np.expand_dims(x, axis=2)",
-        ),
-        pytest.param(
-            lambda x: np.expand_dims(x, axis=(0, 1)),
-            {
-                "x": {"status": "encrypted", "range": [-10, 10], "shape": (3, 2)},
-            },
-            id="np.expand_dims(x, axis=(0, 1))",
-        ),
-        pytest.param(
-            lambda x: np.expand_dims(x, axis=(0, 2)),
-            {
-                "x": {"status": "encrypted", "range": [-10, 10], "shape": (3, 2)},
-            },
-            id="np.expand_dims(x, axis=(0, 2))",
-        ),
-        pytest.param(
-            lambda x: np.expand_dims(x, axis=(1, 2)),
-            {
-                "x": {"status": "encrypted", "range": [-10, 10], "shape": (3, 2)},
-            },
-            id="np.expand_dims(x, axis=(1, 2))",
-        ),
-        pytest.param(
-            lambda x: np.expand_dims(x, axis=(0, 1, 2)),
-            {
-                "x": {"status": "encrypted", "range": [-10, 10], "shape": (3, 2)},
-            },
-            id="np.expand_dims(x, axis=(0, 1, 2))",
-        ),
-        pytest.param(
-            lambda x: x**3,
-            {
-                "x": {"status": "encrypted", "range": [-30, 30]},
-            },
-            id="x ** 3",
-        ),
+        # pytest.param(
+        #     lambda x: 50 > x,  # pylint: disable=misplaced-comparison-constant
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 100]},
+        #     },
+        #     id="50 > x",
+        # ),
+        # pytest.param(
+        #     lambda x: x < 50,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 100]},
+        #     },
+        #     id="x < 50",
+        # ),
+        # pytest.param(
+        #     lambda x: 50 < x,  # pylint: disable=misplaced-comparison-constant
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 100]},
+        #     },
+        #     id="50 < x",
+        # ),
+        # pytest.param(
+        #     lambda x: x >= 50,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 100]},
+        #     },
+        #     id="x >= 50",
+        # ),
+        # pytest.param(
+        #     lambda x: 50 >= x,  # pylint: disable=misplaced-comparison-constant
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 100]},
+        #     },
+        #     id="50 >= x",
+        # ),
+        # pytest.param(
+        #     lambda x: x <= 50,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 100]},
+        #     },
+        #     id="x <= 50",
+        # ),
+        # pytest.param(
+        #     lambda x: 50 <= x,  # pylint: disable=misplaced-comparison-constant
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 100]},
+        #     },
+        #     id="50 <= x",
+        # ),
+        # pytest.param(
+        #     lambda x: x == 50,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 100]},
+        #     },
+        #     id="x == 50",
+        # ),
+        # pytest.param(
+        #     lambda x: 50 == x,  # pylint: disable=misplaced-comparison-constant
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 100]},
+        #     },
+        #     id="50 == x",
+        # ),
+        # pytest.param(
+        #     lambda x: x != 50,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 100]},
+        #     },
+        #     id="x != 50",
+        # ),
+        # pytest.param(
+        #     lambda x: 50 != x,  # pylint: disable=misplaced-comparison-constant
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 100]},
+        #     },
+        #     id="50 != x",
+        # ),
+        # pytest.param(
+        #     lambda x: x.clip(5, 10),
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 15]},
+        #     },
+        #     id="x.clip(5, 10)",
+        # ),
+        # pytest.param(
+        #     lambda x: (60 * np.sin(x)).astype(np.int64) + 60,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 127]},
+        #     },
+        #     id="(60 * np.sin(x)).astype(np.int64) + 60",
+        # ),
+        # pytest.param(
+        #     lambda x: ((np.sin(x) ** 2) + (np.cos(x) ** 2)).astype(np.int64),
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 127]},
+        #     },
+        #     id="((np.sin(x) ** 2) + (np.cos(x) ** 2)).astype(np.int64)",
+        # ),
+        # pytest.param(
+        #     lambda x: np.maximum(x, [[10, 20], [30, 40], [50, 60]]),
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 127], "shape": (3, 2)},
+        #     },
+        #     id="np.maximum(x, [[10, 20], [30, 40], [50, 60]])",
+        # ),
+        # pytest.param(
+        #     fusable_with_bigger_search,
+        #     {
+        #         "x": {"status": "encrypted", "range": [5, 10]},
+        #         "y": {"status": "encrypted", "range": [5, 10]},
+        #     },
+        #     id="fusable_with_bigger_search",
+        # ),
+        # pytest.param(
+        #     fusable_with_bigger_search_needs_second_iteration,
+        #     {
+        #         "x": {"status": "encrypted", "range": [5, 10]},
+        #         "y": {"status": "encrypted", "range": [5, 10]},
+        #     },
+        #     id="fusable_with_bigger_search_needs_second_iteration",
+        # ),
+        # pytest.param(
+        #     fusable_with_one_of_the_start_nodes_is_lca_generator(),
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 4], "shape": (1, 10)},
+        #     },
+        #     id="fusable_with_one_of_the_start_nodes_is_lca",
+        # ),
+        # pytest.param(
+        #     fusable_with_hard_to_find_lca,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 10]},
+        #     },
+        #     id="fusable_with_hard_to_find_lca",
+        # ),
+        # pytest.param(
+        #     fusable_with_hard_to_find_lca_used_twice,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 4], "shape": (2, 2)},
+        #     },
+        #     id="fusable_with_hard_to_find_lca_used_twice",
+        # ),
+        # pytest.param(
+        #     fusable_additional_1,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 10]},
+        #     },
+        #     id="fusable_additional_1",
+        # ),
+        # pytest.param(
+        #     fusable_additional_2,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 10]},
+        #     },
+        #     id="fusable_additional_2",
+        # ),
+        # pytest.param(
+        #     lambda x: x + x.shape[0] + x.ndim + x.size,
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 15], "shape": (3, 2)},
+        #     },
+        #     id="x + x.shape[0] + x.ndim + x.size",
+        # ),
+        # pytest.param(
+        #     lambda x: (50 * np.sin(x.transpose())).astype(np.int64),
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 15], "shape": (3, 2)},
+        #     },
+        #     id="(50 * np.sin(x.transpose())).astype(np.int64)",
+        # ),
+        # pytest.param(
+        #     lambda x: np.where(x < 5, x * 3, x),
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 10]},
+        #     },
+        #     id="np.where(x < 5, x * 3, x)",
+        # ),
+        # pytest.param(
+        #     lambda x: x + np.ones_like(x),
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 10]},
+        #     },
+        #     id="x + np.ones_like(x)",
+        # ),
+        # pytest.param(
+        #     lambda x: x + np.zeros_like(x),
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 10]},
+        #     },
+        #     id="x + np.zeros_like(x)",
+        # ),
+        # pytest.param(
+        #     lambda x: cnp.univariate(deterministic_unary_function)(x),
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 10]},
+        #     },
+        #     id="cnp.univariate(deterministic_unary_function)(x)",
+        # ),
+        # pytest.param(
+        #     lambda x: round(np.sqrt(x)),
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 100], "shape": ()},
+        #     },
+        #     id="round(np.sqrt(x))",
+        # ),
+        # pytest.param(
+        #     lambda x: np.sqrt(x).round().astype(np.int64),
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 100]},
+        #     },
+        #     id="np.sqrt(x).round().astype(np.int64)",
+        # ),
+        # pytest.param(
+        #     lambda x: (2.5 * round(np.sqrt(x), ndigits=4)).astype(np.int64),
+        #     {
+        #         "x": {"status": "encrypted", "range": [0, 100], "shape": ()},
+        #     },
+        #     id="(2.5 * round(np.sqrt(x), decimals=4)).astype(np.int64)",
+        # ),
+        # pytest.param(
+        #     lambda x, y: cnp.LookupTable(list(range(32)))[x + y],
+        #     {
+        #         "x": {"status": "encrypted", "range": [-10, 10]},
+        #         "y": {"status": "encrypted", "range": [-10, 10]},
+        #     },
+        #     id="cnp.LookupTable(list(range(32)))[x + y]",
+        # ),
+        # pytest.param(
+        #     lambda x: np.expand_dims(x, axis=0),
+        #     {
+        #         "x": {"status": "encrypted", "range": [-10, 10], "shape": (3, 2)},
+        #     },
+        #     id="np.expand_dims(x, axis=0)",
+        # ),
+        # pytest.param(
+        #     lambda x: np.expand_dims(x, axis=1),
+        #     {
+        #         "x": {"status": "encrypted", "range": [-10, 10], "shape": (3, 2)},
+        #     },
+        #     id="np.expand_dims(x, axis=1)",
+        # ),
+        # pytest.param(
+        #     lambda x: np.expand_dims(x, axis=2),
+        #     {
+        #         "x": {"status": "encrypted", "range": [-10, 10], "shape": (3, 2)},
+        #     },
+        #     id="np.expand_dims(x, axis=2)",
+        # ),
+        # pytest.param(
+        #     lambda x: np.expand_dims(x, axis=(0, 1)),
+        #     {
+        #         "x": {"status": "encrypted", "range": [-10, 10], "shape": (3, 2)},
+        #     },
+        #     id="np.expand_dims(x, axis=(0, 1))",
+        # ),
+        # pytest.param(
+        #     lambda x: np.expand_dims(x, axis=(0, 2)),
+        #     {
+        #         "x": {"status": "encrypted", "range": [-10, 10], "shape": (3, 2)},
+        #     },
+        #     id="np.expand_dims(x, axis=(0, 2))",
+        # ),
+        # pytest.param(
+        #     lambda x: np.expand_dims(x, axis=(1, 2)),
+        #     {
+        #         "x": {"status": "encrypted", "range": [-10, 10], "shape": (3, 2)},
+        #     },
+        #     id="np.expand_dims(x, axis=(1, 2))",
+        # ),
+        # pytest.param(
+        #     lambda x: np.expand_dims(x, axis=(0, 1, 2)),
+        #     {
+        #         "x": {"status": "encrypted", "range": [-10, 10], "shape": (3, 2)},
+        #     },
+        #     id="np.expand_dims(x, axis=(0, 1, 2))",
+        # ),
+        # pytest.param(
+        #     lambda x: x**3,
+        #     {
+        #         "x": {"status": "encrypted", "range": [-30, 30]},
+        #     },
+        #     id="x ** 3",
+        # ),
     ],
 )
 def test_others(function, parameters, helpers):

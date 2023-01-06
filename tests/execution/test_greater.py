@@ -24,13 +24,13 @@ import concrete.numpy as cnp
                 "y": { "range": [0, 10], "status": "encrypted" },
             },
         ),
-        # pytest.param(
-        #     lambda x, y: x > y,
-        #     {
-        #         "x": { "range": [0, 255], "status": "encrypted" },
-        #         "y": { "range": [0, 255], "status": "encrypted" },
-        #     },
-        # ),
+        pytest.param(
+            lambda x, y: x > y,
+            {
+                "x": { "range": [300, 500], "status": "encrypted" },
+                "y": { "range": [300, 500], "status": "encrypted" },
+            },
+        ),
     ],
 )
 def test_greater(function, parameters, helpers):
